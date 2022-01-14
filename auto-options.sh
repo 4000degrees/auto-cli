@@ -25,7 +25,8 @@ if [[ $1 == "setup-autocomplete" ]]; then
     local cmd="$1"
     local ext="${cmd##*.}"
 
-    if [[ $ext != "sh" ]] || [[ -z $(grep "auto-options" "$cmd") ]]; then # get default completion if its not an .sh file or doesn't contain this script's name
+    # If its not an .sh file or doesn't contain "auto-options" command, restore completion.
+    if [[ $ext != "sh" ]] || [[ -z $(grep "auto-options" "$cmd") ]]; then
       __load_completion "$cmd" && return 124
       complete -F _minimal -- "$cmd" && return 124
     fi
@@ -51,20 +52,18 @@ if [[ $1 == "setup-autocomplete" ]]; then
   return
 fi
 
-IFS=" " read -a ps_output <<< "$(ps --no-headers $PPID)" # Get parent script
-# if [[ ${ps_output[5]} == "" ]] || [[ $(basename ${ps_output[5]}) == $(basename $0) ]]; then
-# # If 5th element is empty it means that parent is bash. If 5th el is this script, it means options has been selected and it runs itself 2nd time.
-#   exit
-# fi
+scriptpath="$(readlink /proc/${PPID}/fd/255)"
 
-scriptname="$(basename ${ps_output[5]})"
-scriptpath="$(realpath ${ps_output[5]})"
-scriptargs="${ps_output[@]:6}"
-# echo ${ps_output[@]}
-# echo $PWD
-# echo $scriptpath
-echo $(readlink /proc/${PPID}/fd/255)
-exit
+if [[ "$scriptpath" == "" ]] || [[ $scriptpath == "/dev/pts"* ]]; then
+  echo "This script shouldn't be run directly."
+  exit # If scriptpath is tty or empty, it means it's run directly.
+fi
+
+if [[ $(cat /proc/$PPID/comm) == "auto-options" ]]; then
+  exit # If running itself, it means its the second run after including parent script.
+fi
+
+scriptname="$(basename ${scriptpath})"
 
 options=$(getFunctions "$scriptpath")
 
@@ -87,7 +86,7 @@ if [[ ! "$options" =~ ($'\n'|^)"$cmd"($'\n'|$) ]]; then
   exit
 fi
 
-BASH_ARGV0="$scriptpath"
+BASH_ARGV0="$scriptpath" # Change $0 to caller script to avoid confusion.
 source "$scriptpath"
 
 echo "Running ${cmd}..."
