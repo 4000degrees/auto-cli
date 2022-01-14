@@ -52,6 +52,11 @@ if [[ $1 == "setup-autocomplete" ]]; then
   return
 fi
 
+
+if [[ $(cat /proc/$PPID/comm) == "auto-options" ]]; then
+  exit # If running itself, it means its the second run after including parent script.
+fi
+
 scriptpath="$(readlink /proc/${PPID}/fd/255)"
 
 if [[ "$scriptpath" == "" ]] || [[ $scriptpath == "/dev/pts"* ]]; then
@@ -59,11 +64,9 @@ if [[ "$scriptpath" == "" ]] || [[ $scriptpath == "/dev/pts"* ]]; then
   exit # If scriptpath is tty or empty, it means it's run directly.
 fi
 
-if [[ $(cat /proc/$PPID/comm) == "auto-options" ]]; then
-  exit # If running itself, it means its the second run after including parent script.
-fi
-
 scriptname="$(basename ${scriptpath})"
+
+scriptargs="$(cut -d '' -f3- --output-delimiter=' ' /proc/$PPID/cmdline)"
 
 options=$(getFunctions "$scriptpath")
 
@@ -74,6 +77,7 @@ if [[ -z "$scriptargs" ]]; then
       break
   done
 else
+  scriptargs=${scriptargs::-1} # After cut there is a triling space, it has to be removed.
   cmd="$scriptargs"
 fi
 
