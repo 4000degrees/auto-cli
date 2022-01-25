@@ -2,14 +2,15 @@
 
 # Automatically detect functions in a script.
 # - Enables autocomplete for functions in a script
-# - Executes function passed in an argument
+# - Executes function passed as an argument
 # - Displays a select with function names if run w/o arguments
-# Works only if shebang is present in parent script. Otherwise there's no way to find caller, it is always /bin/bash.
+# Installation:
 # ln -s /path/to/auto-options.sh ~/.local/bin/auto-options
 # echo source auto-options setup-autocomplete >> ~/.bashrc
 # Then add "auto-options" at the bottom of a script.
-# Private functions can be declared by adding a comment with the word 'private': function name { # private
-# 03-21-2021
+# Shebang must be present in the script, otherwise calling functions via arguments won't work.
+# Private functions can be declared by adding a comment with the word 'private'. E.g.: function name { # private
+# 4000degrees@gmail.com 03-21-2021
 
 function getFunctions {
   file="$1"
@@ -52,33 +53,41 @@ if [[ $1 == "setup-autocomplete" ]]; then
   return
 fi
 
-
+# If running itself, it means its the second run after re-runnig the parent script.
 if [[ $(cat /proc/$PPID/comm) == "auto-options" ]]; then
-  exit # If running itself, it means its the second run after including parent script.
+  exit
 fi
 
-scriptpath="$(readlink /proc/${PPID}/fd/255)"
+if [[ -f /proc/${PPID}/fd/254 ]]; then
+  # If there's no shebang, caller is bash, and 255 desciptor points to tty and 254 to script.
+  fd=/proc/${PPID}/fd/254
+else
+  # If there is shebang, caller is parent script and 255 points to it.
+  fd=/proc/${PPID}/fd/255
+fi
 
+scriptpath="$(readlink $fd)"
+
+# If scriptpath is tty or empty, it means it's run directly.
 if [[ "$scriptpath" == "" ]] || [[ $scriptpath == "/dev/pts"* ]]; then
   echo "This script shouldn't be run directly."
-  exit # If scriptpath is tty or empty, it means it's run directly.
+  exit
 fi
 
 scriptname="$(basename ${scriptpath})"
 
-scriptargs="$(cut -d '' -f3- --output-delimiter=' ' /proc/$PPID/cmdline)"
+# If there's no shebang, /proc/$PPID/cmdline contains only /bin/bash. Script arguments aren't available.
+readarray -d '' cmdarray < <(cat /proc/$PPID/cmdline)
+cmd=${cmdarray[2]}
 
 options=$(getFunctions "$scriptpath")
 
-if [[ -z "$scriptargs" ]]; then
+if [[ -z "$cmd" ]]; then
   select option in $options
   do
       cmd="$option"
       break
   done
-else
-  scriptargs=${scriptargs::-1} # After cut there is a triling space, it has to be removed.
-  cmd="$scriptargs"
 fi
 
 if [[ -z "$cmd" ]]; then
@@ -94,4 +103,4 @@ BASH_ARGV0="$scriptpath" # Change $0 to caller script to avoid confusion.
 source "$scriptpath"
 
 echo "Running ${cmd}..."
-$cmd
+"${cmdarray[@]:2}"
