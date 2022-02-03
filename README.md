@@ -33,7 +33,7 @@ function deploy {
 }
 ```
 
-Now you can functions from the script by running `commands.sh dev` or `commands.sh deploy` or any other.
+Now you can call functions from the script by running `commands.sh dev` or `commands.sh deploy` or any other.
 
 Also if you type `./commands.sh` and press TAB, you will get autocompletion for all functions in the script. Or if you run your script without any arguments, auto-cli will display a select with your functions.
 
