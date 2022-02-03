@@ -1,6 +1,6 @@
 # Bash Auto CLI
 
-## Automatically create command line interface from functions in a bash script.
+Automatically create command line interface from functions in a bash script.
 
 ### Features
 
@@ -23,7 +23,7 @@ auto-cli
 function dev {
   tmux \
   new-session 'trap bash EXIT; cd mock-api; npm run mock-api' \; \
-  split-window -h 'trap bash EXIT; cd app && npm run serve' \; \
+  split-window -h 'trap bash EXIT; cd app; npm run serve' \; \
   set status off \;
 }
 
@@ -37,20 +37,20 @@ Now you can call functions from the script by running `commands.sh dev` or `comm
 
 Also if you type `./commands.sh` and press TAB, you will get autocompletion for all functions in the script. Or if you run your script without any arguments, auto-cli will display a select with your functions.
 
-## Installation
+### Installation
 
 1. Download auto-cli.sh and put it in any location
 
-2. ln -s /path/to/auto-cli.sh ~/.local/bin/auto-cli
+2. `ln -s /path/to/auto-cli.sh ~/.local/bin/auto-cli`
 
-3. echo source auto-cli setup-autocomplete >> ~/.bashrc
+3. `echo source auto-cli setup-autocomplete >> ~/.bashrc`
 
-## Usage
+### Usage
 
 Add `auto-cli` at any location in your script.
 Shebang must be present in the script, otherwise calling functions via arguments won't work.
+
 Private functions can be declared by adding a comment with the word 'private'. E.g.: `function name { # private`.
 
 Also supports function arguments: `./commands.sh function argument argument2`.
-
 'argument' and 'argument2' will be available in the function as \$1 and \$2.
