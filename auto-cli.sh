@@ -1,16 +1,18 @@
 #!/bin/bash
 
-# Automatically detect functions in a script.
-# - Enables autocomplete for functions in a script
-# - Executes function passed as an argument
-# - Displays a select with function names if run w/o arguments
-# Installation:
-# ln -s /path/to/auto-options.sh ~/.local/bin/auto-options
-# echo source auto-options setup-autocomplete >> ~/.bashrc
-# Then add "auto-options" at the bottom of a script.
+# Automatically create command line interface from functions in a bash script.
+# - Enables tab autocomplete for functions in a bash script
+# - Executes function passed as an argument to a bash script
+# - Displays a select with function names if run without arguments
+# Installation
+# 1. Download auto-cli.sh and put it in any location
+# 2. ln -s /path/to/auto-cli.sh ~/.local/bin/auto-cli
+# 3. echo source auto-cli setup-autocomplete >> ~/.bashrc
+# Usage
+# Add `auto-cli` at any location in your script.
 # Shebang must be present in the script, otherwise calling functions via arguments won't work.
-# Private functions can be declared by adding a comment with the word 'private'. E.g.: function name { # private
-# 4000degrees@gmail.com 03-21-2021
+# Private functions can be declared by adding a comment with the word 'private'. E.g.: `function name { # private`.
+# github.com/4000degrees/auto-cli
 
 function getFunctions {
   file="$1"
@@ -26,8 +28,8 @@ if [[ $1 == "setup-autocomplete" ]]; then
     local cmd="$1"
     local ext="${cmd##*.}"
 
-    # If its not an .sh file or doesn't contain "auto-options" command, restore completion.
-    if [[ $ext != "sh" ]] || [[ -z $(grep "auto-options" "$cmd") ]]; then
+    # If its not an .sh file or doesn't contain "auto-cli" command, restore completion.
+    if [[ $ext != "sh" ]] || [[ -z $(grep "auto-cli" "$cmd") ]]; then
       __load_completion "$cmd" && return 124
       complete -F _minimal -- "$cmd" && return 124
     fi
@@ -54,7 +56,7 @@ if [[ $1 == "setup-autocomplete" ]]; then
 fi
 
 # If running itself, it means its the second run after re-runnig the parent script.
-if [[ $(cat /proc/$PPID/comm) == "auto-options" ]]; then
+if [[ $(cat /proc/$PPID/comm) == "auto-cli" ]]; then
   exit
 fi
 
