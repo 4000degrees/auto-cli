@@ -80,24 +80,26 @@ scriptname="$(basename ${scriptpath})"
 
 # If there's no shebang, /proc/$PPID/cmdline contains only /bin/bash. Script arguments aren't available.
 readarray -d '' cmdarray < <(cat /proc/$PPID/cmdline)
-cmd=${cmdarray[2]}
+cmdname=${cmdarray[2]}
+fullcmd=("${cmdarray[@]:2}")
 
 options=$(getFunctions "$scriptpath")
 
-if [[ -z "$cmd" ]]; then
+if [[ -z "$cmdname" ]]; then
   select option in $options
   do
-      cmd="$option"
+      cmdname="$option"
+      fullcmd="$option"
       break
   done
 fi
 
-if [[ -z "$cmd" ]]; then
+if [[ -z "$cmdname" ]]; then
   exit
 fi
 
-if [[ ! "$options" =~ ($'\n'|^)"$cmd"($'\n'|$) ]]; then
-  echo There is no function named \"$cmd\" in ${scriptname}.
+if [[ ! "$options" =~ ($'\n'|^)"$cmdname"($'\n'|$) ]]; then
+  echo There is no function named \"$cmdname\" in ${scriptname}.
   exit
 fi
 
@@ -105,4 +107,4 @@ BASH_ARGV0="$scriptpath" # Change $0 to caller script to avoid confusion.
 source "$scriptpath"
 
 echo "Running ${cmd}..."
-"${cmdarray[@]:2}"
+"${fullcmd[@]}"
