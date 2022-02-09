@@ -106,5 +106,5 @@ fi
 BASH_ARGV0="$scriptpath" # Change $0 to caller script to avoid confusion.
 source "$scriptpath"
 
-echo "Running ${cmd}..."
+echo "Running ${cmdname}..."
 "${fullcmd[@]}"
