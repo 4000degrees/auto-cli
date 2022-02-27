@@ -104,7 +104,7 @@ if [[ ! "$options" =~ ($'\n'|^)"$cmdname"($'\n'|$) ]]; then
 fi
 
 BASH_ARGV0="$scriptpath" # Change $0 to caller script to avoid confusion.
-source "$scriptpath"
+source ""${scriptpath} ${fullcmd[@]}""
 
 echo "Running ${cmdname}..."
 "${fullcmd[@]}"
